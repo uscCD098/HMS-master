@@ -1,0 +1,217 @@
+﻿<html>
+<head>
+    @Styles.Render("~/Content/adminmenucss")
+    @Scripts.Render("~/bundles/adminmenujs")
+    @Scripts.Render("~/bundles/jquery")
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/menu/getMyAppointments',
+                type: 'GET',
+                success: function (responses) {
+                    response = JSON.parse(responses);
+                    if (response != null && response.length > 0) {
+                        var html = "";
+                        html += "<table class='table'>" +
+                            "<thead>" +
+                            "<tr>" +
+                            "<th>Dr Name</th>" +
+                            "<th>Patient Name</th>" +
+                            "<th>Appointment Date</th>" +
+                            "<th>Appointment Hour</th>" +
+                            "<th>Cancel appointment</th>" +
+                            "</tr>" +
+                            "</thead >" +
+                            "<tbody>";
+                        for (var i = 0; i < response.length; i++) {
+                            html += "<tr>" +
+                                "<td>" + response[i].drName + "</td>" +
+                                "<td>" + response[i].patientName + "</td>" +
+                                "<td>" + response[i].appointmentDate + "</td>" +
+                                "<td>" + response[i].bookingHour + "</td>" +
+                                "<td> <input class='btnCancel' type='button' name='" + response[i].id + "' value='Reject'/></td>" +
+                                "</tr>";
+                        }
+                        html += "</tbody>" +
+                            "</table>";
+                        $('#appointmentList').append(html);
+                        $('.btnCancel').click(function () {
+                            var formParams = {
+                                id: $(this).attr("name")
+                            };
+                            $.ajax({
+                                url: '/menu/cancelAppointment',
+                                type: 'GET',
+                                data: formParams,
+                                success: function (response) {
+                                    alert(response);
+                                    location.reload(true);
+                                },
+                                error: function () {
+                                    alert("error");
+                                }
+                            });
+                        });
+
+                    }
+
+                },
+                error: function () {
+                    alert("An error occured");
+                }
+            });
+
+            $("#AvailabilityContent").hide();
+            $("#patientHistoryContent").hide();
+
+            $("#availabilityOption").click(function () {
+               
+                hideAll();
+
+                $("#availabilityOption").addClass('active');
+                $("#AvailabilityContent").show();
+
+            });
+            $("#patientHistoryOption").click(function () {
+
+                hideAll();
+
+                $("#patientHistoryOption").addClass('active');
+                $("#patientHistoryContent").show();
+
+            });
+            $("#appointmentOption").click(function () {
+
+                hideAll();
+
+                $("#appointmentOption").addClass('active');
+                $("#appointmentContent").show();
+
+            });
+
+
+            function hideAll() {
+
+                $("#appointmentOption").removeClass('active');
+                $("#appointmentContent").hide();
+
+                $("#availabilityOption").removeClass("active");
+                $("#AvailabilityContent").hide();
+
+                $("#patientHistoryOption").removeClass("active");
+                $("#patientHistoryContent").hide();
+            }
+
+
+            $('#btnLogout').click(function () {
+                $.ajax({
+                    url: '/menu/logoutRequest',
+                    type: 'GET',
+                    success: function (response) {
+                        alert(response);
+                        window.location.replace("/login/login");
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+            });
+
+            $("#btnUpdateAvailability").click(function () {
+
+                if (isFormValid()) {
+                    var startTime = $("#startTime").val();
+                    var endTime = $("#endTime").val();
+                    var formParams = {
+                        'startTime': startTime,
+                        'endTime': endTime
+                    };
+                    $.ajax({
+                        url: '/menu/setDoctorTiming',
+                        type: 'GET',
+                        data: formParams,
+                        success: function (response) {
+                            alert(response);
+                        },
+                        error: function () {
+                            alert("error");
+                        }
+                    });
+                }
+            });
+
+        });
+        function isFormValid() {
+            var startTime = $("#startTime").val();
+            var endTime = $("#endTime").val();
+            if (startTime < 0 || startTime > 23) {
+                alert("Start Time must be between 0 to 23");
+                return false;
+            }
+            if (endTime < 0 || endTime > 23) {
+                alert("End Time must be between 0 to 23");
+                return false;
+            }
+            if (startTime != "" && endTime != "") {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    </script>
+</head>
+<body style="background: url('../../Images/connect_practice_simar.jpg') no-repeat center; background-size:100% 100%;  backdrop-filter:blur(8px);">
+    <div id="login">
+        <h3 id="headingLogin" class="text-center pt-5">Connect Practice</h3>
+        <div class="container d-flex align-items-stretch">
+            <nav id="sidebar" class="img" style="background-image: url(images/bg_1.jpg);">
+                <div class="p-4">
+                    <h1><a href="index.html" class="logo">CP <span>Connect Practice</span></a></h1>
+                    <ul class="list-unstyled components mb-5">
+                        <li id="appointmentOption" class="active">
+                            <a><span class="fa fa-home mr-3"></span> Appointments</a>
+                        </li>
+                        <li id="availabilityOption">
+                            <a><span class="fa fa-user mr-3"></span> Availability</a>
+                        </li>
+                        <li id="patientHistoryOption">
+                            <a><span class="fa fa-user mr-3"></span> Patient History</a>
+                        </li>
+                        <li id="btnLogout">
+                            <a><span class="fa fa-user mr-3"></span>Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- Page Content  -->
+            <div id="appointmentContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">Appointments</h2>
+                <div id="appointmentList">
+                </div>
+            </div>
+            <div id="AvailabilityContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">Availability throughout the Week</h2>
+                <form id="login-form" class="form" action="" method="post">
+                    <div class="form-group">
+                        <label for="startTime" class="text-info">Start Time (in hours 01-23):</label><br>
+                        <input type="number" name="startTime" id="startTime" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="Name" class="text-info">End Time (in hours 01-23):</label><br>
+                        <input type="number" name="endTime" id="endTime" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input id="btnUpdateAvailability" type="button" name="btnUpdateAvailability" class="btn btn-info btn-md btn-hms" value="Update Availability" />
+                    </div>
+                </form>
+
+            </div>
+            <div id="patientHistoryContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">Patient History</h2>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

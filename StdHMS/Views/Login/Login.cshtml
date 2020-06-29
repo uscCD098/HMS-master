@@ -1,0 +1,91 @@
+﻿<html>
+<head>
+    @Styles.Render("~/Content/adminmenucss")
+    @Scripts.Render("~/bundles/adminmenujs")
+    @Scripts.Render("~/bundles/jquery")
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/login/isAlreadyLogin',
+                type: 'GET',
+                success: function (response) {
+                },
+                error: function () {
+                }
+            });
+
+
+            function formIsValid() {
+                var isValid = true;
+                var username = $("#username").val();
+                var password = $("#password").val();
+
+                if (password == "" ||
+                    username == "") {
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+            $("#btnLogin").click(function () {
+                var username = $("#username").val();
+                var password = $("#password").val();
+
+                var formParams = {
+                    'username': username,
+                    'password': password
+                };
+                if (formIsValid()) {
+                    $.ajax({
+                        url: '/login/loginAttempt',
+                        type: 'GET',
+                        data: formParams,
+                        success: function (response) {
+                            alert(response);
+                            if (response == "Successful logged in") {
+                                window.location.replace("/menu/menu");
+                            }
+
+                        },
+                        error: function () {
+                            alert("Username and Password is incorrect");
+                        }
+                    });
+                } else {
+                    alert("Please enter username and password");
+                }
+            });
+
+        });
+    </script>
+</head>
+<body style="background: url('../../Images/connect_practice_simar.jpg') no-repeat center; background-size:100% 100%; ">
+    <div id="login">
+        <div class="container ">
+            <div id="login-row" class="row justify-content-center align-items-center">
+                <div id="login-column" class="col-md-6">
+                    <div id="login-box" >
+                        <form id="login-form" class="form" action="" method="post">
+                            <h3 class="text-center text-info">Login</h3>
+                            <div class="form-group">
+                                <label for="username" class="text-info">Username:</label><br>
+                                <input type="text" name="username" id="username" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="text-info">Password:</label><br>
+                                <input type="password" name="password" id="password" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input id="btnLogin" onclick="loginHit()" type="button" name="Login" class="btn btn-info btn-md btn-hms" value="Login" />
+                                <br />
+                                <input type="button" onclick="window.location.href='/register/register'" name="Sign Up" class="btn btn-info btn-md btn-hms mar-10" value="Sign Up" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,255 @@
+﻿<html>
+<head>
+    @Styles.Render("~/Content/adminmenucss")
+    @Scripts.Render("~/bundles/adminmenujs")
+    @Scripts.Render("~/bundles/jquery")
+
+    <script>
+        $(document).ready(function () {
+
+            function getPatientAppointments() {
+
+                $('#appointmentList').empty();
+                $.ajax({
+                    url: '/menu/getPatientAppointments',
+                    type: 'GET',
+                    success: function (responses) {
+                        response = JSON.parse(responses);
+                        if (response != null && response.length > 0) {
+                            var html = "";
+                            html += "<table class='table'>" +
+                                "<thead>" +
+                                "<tr>" +
+                                "<th>Dr Name</th>" +
+                                "<th>Patient Name</th>" +
+                                "<th>Appointment Date</th>" +
+                                "<th>Appointment Hour</th>" +
+                                "<th>Cancel appointment</th>" +
+                                "</tr>" +
+                                "</thead >" +
+                                "<tbody>";
+                            for (var i = 0; i < response.length; i++) {
+                                html += "<tr>" +
+                                    "<td>" + response[i].drName + "</td>" +
+                                    "<td>" + response[i].patientName + "</td>" +
+                                    "<td>" + response[i].appointmentDate + "</td>" +
+                                    "<td>" + response[i].bookingHour + "</td>" +
+                                    "<td> <input class='btnCancel' type='button' name='" + response[i].id + "' value='Reject'/></td>" +
+                                    "</tr>";
+                            }
+                            html += "</tbody>" +
+                                "</table>";
+                            $('#appointmentList').append(html);
+                            $('.btnCancel').click(function () {
+                                var formParams = {
+                                    id: $(this).attr("name")
+                                };
+                                $.ajax({
+                                    url: '/menu/cancelAppointment',
+                                    type: 'GET',
+                                    data: formParams,
+                                    success: function (response) {
+                                        alert(response);
+                                        location.reload(true);
+                                    },
+                                    error: function () {
+                                        alert("error");
+                                    }
+                                });
+                            });
+
+                        }
+
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+            }
+
+            $("#listAppointmentsContent").hide();
+
+            $("#appointmentOption").click(function () {
+
+                hideAll();
+
+                $("#appointmentOption").addClass('active');
+                $("#AppintmentContent").show();
+
+            });
+
+            $("#listAppointmentsOption").click(function () {
+
+                hideAll();
+
+                $("#listAppointmentsOption").addClass('active');
+                $("#listAppointmentsContent").show();
+
+                getPatientAppointments();
+
+            });
+
+
+            function hideAll() {
+
+                $("#listAppointmentsOption").removeClass('active');
+                $("#listAppointmentsContent").hide();
+
+                $("#appointmentOption").removeClass("active");
+                $("#AppintmentContent").hide();
+
+            }
+
+
+            $.ajax({
+                url: '/menu/getAllDoctors',
+                type: 'GET',
+                success: function (response) {
+                    var doctors = JSON.parse(response);
+                    $('#doctorList').empty();
+                    for (var i = 0; i < doctors.length; i++) {
+                        $('#doctorList').append($("<option />").val(doctors[i].username).text(doctors[i].name));
+                    }
+
+                },
+                error: function () {
+                    alert("An error occured");
+                }
+            });
+
+            $('#getAvailableSlots').click(function () {
+                
+                $('#availableTime').empty();
+                var drUsername = $('#doctorList').find(':selected').val();
+                var formParams = {
+                    'username': drUsername,
+                    'appointmentDate': $('#appointmentDate').val()
+                };
+                
+                $.ajax({
+                    url: '/menu/getDrAvailableTime',
+                    type: 'GET',
+                    data: formParams,
+                    success: function (response) {
+                        
+                        var availability = JSON.parse(response);
+                        var html = "";
+                        if (availability != null && availability.length > 0) {
+                            for (var i = 0; i < availability.length; i++) {
+                                if (availability[i].isBooked) {
+                                    html += "<div class='availabilityHours notavailable'>" + availability[i].hour + "</div>";
+                                } else {
+                                    html += "<div class='availabilityHours available'>" + availability[i].hour + "</div>";
+                                }
+                            }
+                        }
+                           
+                            $('#availableTime').html(html);
+
+                            //When patient clicks the available time slot
+                            $('.available').click(function () {
+                                var bookingHour = $(this).text();
+                                var drName = $("#doctorList").find(':selected').val();
+                                var appointmentDate = $('#appointmentDate').val();
+                                var formParams = {
+                                    'bookingHour': bookingHour,
+                                    'drName': drName,
+                                    'appointmentDate': appointmentDate
+                                };
+
+                                $.ajax({
+                                    url: '/menu/setAppointment',
+                                    type: 'GET',
+                                    data: formParams,
+                                    success: function (response) {
+
+                                        alert(response);
+
+                                        $('#availableTime').empty();
+                                    },
+                                    error: function () {
+                                        alert("An error occured");
+                                    }
+                                });
+                            });
+                        
+                        
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+                
+            });
+            $('#btnLogout').click(function () {
+                $.ajax({
+                    url: '/menu/logoutRequest',
+                    type: 'GET',
+                    success: function (response) {
+                        alert(response);
+                        window.location.replace("/login/login");
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+            });
+
+
+        });
+    </script>
+</head>
+<body style="background: url('../../Images/connect_practice_simar.jpg') no-repeat center; background-size:100% 100%; backdrop-filter:blur(8px); " >
+    <div id="login">
+        <h3 id="headingLogin" class="text-center pt-5">Connect Practice</h3>
+        <div class="container d-flex align-items-stretch">
+            <nav id="sidebar" class="img" style="background-image: url(images/bg_1.jpg);">
+                <div class="p-4">
+                    <h1><a href="index.html" class="logo">CP <span>Connect Practice</span></a></h1>
+                    <ul class="list-unstyled components mb-5">
+                        <li id="appointmentOption" class="active">
+                            <a><span class="fa fa-home mr-3"></span> Set Appointment</a>
+                        </li>
+                        <li id="listAppointmentsOption">
+                            <a><span class="fa fa-home mr-3"></span> My Appointments</a>
+                        </li>
+                        <li id="btnLogout">
+                            <a><span class="fa fa-user mr-3"></span>Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- Page Content  -->
+
+            <div id="AppintmentContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">Set Appointment</h2>
+                <form id="login-form" class="form" action="" method="post">
+                    <div class="form-group">
+                        <label for="startTime" class="text-info">Select Appointment Date</label><br>
+                        <input type="date" name="appointmentDate" id="appointmentDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="Name" class="text-info">Select Doctor</label><br>
+                        <select name="doctorList" id="doctorList" class="form-control">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input id="getAvailableSlots" type="button" name="getAvailableSlots" class="btn btn-info btn-md btn-hms" value="Get Available Slots" />
+                    </div>
+                    <div id="availableTime" class="form-group">
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <div id="listAppointmentsContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">My Appointments</h2>
+                <div id="appointmentList">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

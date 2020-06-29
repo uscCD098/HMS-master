@@ -1,0 +1,116 @@
+﻿<html>
+<head>
+    @Styles.Render("~/Content/adminmenucss")
+    @Scripts.Render("~/bundles/adminmenujs")
+    @Scripts.Render("~/bundles/jquery")
+
+    <script>
+        $(document).ready(function () {
+            function formIsValid() {
+                var isValid = true;
+                var nameOnly = $("#nameOnly").val();
+                var username = $("#username").val();
+                var pwd = $("#pwd").val();
+                var phoneNumber = $("#phoneNumber").val();
+
+                if (nameOnly == "" ||
+                    username == "" ||
+                    pwd == "" ||
+                    phoneNumber == "") {
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            $("#signUp").click(function () {
+
+                var nameOnly = $("#nameOnly").val();
+                var username = $("#username").val();
+                var pwd = $("#pwd").val();
+                var role = $("#role").val();
+                var phoneNumber = $("#phoneNumber").val();
+                var formParams = {
+                    'nameOnly': nameOnly,
+                    'username': username,
+                    'password': pwd,
+                    'phoneNumber': phoneNumber,
+                    'role': role
+                };
+
+                if (formIsValid()) {
+                    var rpwd = $("#rpwd").val();
+                    if (rpwd != pwd) {
+                        alert("Password and Re-Type password doesnot match");
+                    } else {
+                        $.ajax({
+                            url: '/register/registerUser',
+                            type: 'GET',
+                            data: formParams,
+                            success: function (response) {
+                                alert(response);
+                                window.location.replace("/login/login");
+                            },
+                            error: function () {
+                                alert("error");
+                            }
+                        });
+
+                    }
+
+                } else {
+                    alert('Please fill the complete form');
+                }
+
+
+
+            });
+        });
+    </script>
+</head>
+<body style="background: url('../../Images/connect_practice_simar.jpg') no-repeat center; background-size:100% 100%;" >
+    <div id="login">
+        <div class="container">
+            <div id="login-row" class="row justify-content-center align-items-center">
+                <div id="login-column" class="col-md-6">
+                    <div id="login-box" >
+                        <form id="login-form" class="form" action="" method="post">
+                            <h3 class="text-center text-info">Register</h3>
+                            <div class="form-group">
+                                <select name="role" id="role" class="custom-select-sm">
+                                    <option value="patient">Patient</option>
+                                    <option value="hospital">Hospital</option>
+                                </select>
+                            </div> 
+                            
+                            <div class="form-group">
+                                <label for="Name" class="text-info">Name:</label><br>
+                                <input type="text" name="username" id="nameOnly" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="Name" class="text-info">Phone Number:</label><br>
+                                <input type="text" name="phoneNumber" id="phoneNumber" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="username" class="text-info">Username:</label><br>
+                                <input type="text" name="username" id="username" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="text-info">Password:</label><br>
+                                <input type="password" name="psw" id="pwd" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="text-info">RE-Password:</label><br>
+                                <input type="password" name="rpwd" id="rpwd" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input id="signUp" type="button" onclick="signUp()" name="Sign Up" class="btn btn-info btn-md btn-hms" value="Sign Up">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

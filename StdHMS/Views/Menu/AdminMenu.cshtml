@@ -1,0 +1,293 @@
+﻿<html>
+<head>
+    @Styles.Render("~/Content/adminmenucss")
+    @Scripts.Render("~/bundles/adminmenujs")
+    @Scripts.Render("~/bundles/jquery")
+
+    <script>
+        $(document).ready(function () {
+
+            function getAllAppointments() {
+
+                $('#appointmentList').empty();
+                $.ajax({
+                    url: '/menu/getAllAppointments',
+                    type: 'GET',
+                    success: function (responses) {
+                        response = JSON.parse(responses);
+                        if (response != null && response.length > 0) {
+                            var html = "";
+                            html += "<table class='table'>" +
+                                "<thead>" +
+                                "<tr>" +
+                                "<th>Dr Name</th>" +
+                                "<th>Patient Name</th>" +
+                                "<th>Appointment Date</th>" +
+                                "<th>Appointment Hour</th>" +
+                                "<th>Cancel appointment</th>" +
+                                "</tr>" +
+                                "</thead >" +
+                                "<tbody>";
+                            for (var i = 0; i < response.length; i++) {
+                                html += "<tr>" +
+                                    "<td>" + response[i].drName + "</td>" +
+                                    "<td>" + response[i].patientName + "</td>" +
+                                    "<td>" + response[i].appointmentDate + "</td>" +
+                                    "<td>" + response[i].bookingHour + "</td>" +
+                                    "<td> <input class='btnCancel' type='button' name='" + response[i].id + "' value='Reject'/></td>" +
+                                    "</tr>";
+                            }
+                            html += "</tbody>" +
+                                "</table>";
+                            $('#appointmentList').append(html);
+                            $('.btnCancel').click(function () {
+                                var formParams = {
+                                    id: $(this).attr("name")
+                                };
+                                $.ajax({
+                                    url: '/menu/cancelAppointment',
+                                    type: 'GET',
+                                    data: formParams,
+                                    success: function (response) {
+                                        alert(response);
+                                        location.reload(true);
+                                    },
+                                    error: function () {
+                                        alert("error");
+                                    }
+                                });
+                            });
+
+                        }
+
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+
+            }
+
+            function getAllTheDoctors() {
+
+                $('#doctorsList').empty();
+                $.ajax({
+                    url: '/menu/getAllDoctorsForHospital',
+                    type: 'GET',
+                    success: function (responses) {
+                        response = JSON.parse(responses);
+                        if (response != null && response.length > 0) {
+                            var html = "";
+                            html += "<table class='table'>" +
+                                "<thead>" +
+                                "<tr>" +
+                                "<th>Dr. User Name</th>" +
+                                "<th>Dr. Name</th>" +
+                                "<th>Hospital Name</th>" +
+                                "</tr>" +
+                                "</thead >" +
+                                "<tbody>";
+                            for (var i = 0; i < response.length; i++) {
+                                html += "<tr>" +
+                                    "<td>" + response[i].username + "</td>" +
+                                    "<td>" + response[i].name + "</td>" +
+                                    "<td>" + response[i].hospitalId + "</td>" +
+                                    "</tr>";
+                            }
+                            html += "</tbody>" +
+                                "</table>";
+                            $('#doctorsList').append(html);
+
+                        }
+
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+
+            }
+
+
+            $('#btnLogout').click(function () {
+                $.ajax({
+                    url: '/menu/logoutRequest',
+                    type: 'GET',
+                    success: function (response) {
+                        alert(response);
+                        window.location.replace("/login/login");
+                    },
+                    error: function () {
+                        alert("An error occured");
+                    }
+                });
+            });
+
+           
+
+
+            $("#listAllDoctorsContent").hide();
+            $("#listAllAppointmentsContent").hide();
+
+            $("#addDoctorOption").click(function () {
+                
+
+
+                $("#listAllDoctorsOption").removeClass('active');
+                $("#listAllDoctorsContent").hide();
+
+                $("#listAllAppointmentsOption").removeClass('active');
+                $("#listAllAppointmentsContent").hide();
+
+                $("#addDoctorOption").addClass('active');
+                $("#addDoctorContent").show();
+            });
+
+            $("#listAllDoctorsOption").click(function () {
+                $("#listAllDoctorsOption").addClass('active');
+                $("#listAllDoctorsContent").show();
+
+
+                $("#addDoctorOption").removeClass('active');
+                $("#addDoctorContent").hide();
+
+                $("#listAllAppointmentsOption").removeClass('active');
+                $("#listAllAppointmentsContent").hide();
+
+                getAllTheDoctors();
+            });
+
+            $("#listAllAppointmentsOption").click(function () {
+                $("#listAllAppointmentsOption").addClass('active');
+                $("#listAllAppointmentsContent").show();
+
+                getAllAppointments();
+                $("#addDoctorOption").removeClass('active');
+                $("#addDoctorContent").hide();
+
+                $("#listAllDoctorsOption").removeClass('active');
+                $("#listAllDoctorsContent").hide();
+
+            });
+
+            function formIsValid() {
+                var isValid = true;
+                var nameOnly = $("#nameOnly").val();
+                var username = $("#username").val();
+                var pwd = $("#pwd").val();
+                var phoneNumber = $("#phoneNumber").val();
+
+                if (nameOnly == "" ||
+                    username == "" ||
+                    pwd == "" ||
+                    phoneNumber == "") {
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            $("#addDoctor").click(function () {
+
+                var nameOnly = $("#nameOnly").val();
+                var username = $("#username").val();
+                var pwd = $("#pwd").val();
+                var phoneNumber = $("#phoneNumber").val();
+                var formParams = {
+                    'nameOnly': nameOnly,
+                    'username': username,
+                    'password': pwd,
+                    'phoneNumber': phoneNumber,
+                    'role': 'doctor'
+                };
+
+                if (formIsValid()) {
+                   
+                        $.ajax({
+                            url: '/register/registerUser',
+                            type: 'GET',
+                            data: formParams,
+                            success: function (response) {
+                                alert(response);
+                            },
+                            error: function () {
+                                alert("error");
+                            }
+                        });
+
+
+                } else {
+                    alert('Please fill the complete form');
+                }
+            });
+        });
+    </script>
+</head>
+<body style="background: url('../../Images/connect_practice_simar.jpg') no-repeat center; background-size:100% 100%;  backdrop-filter:blur(8px);">
+    <div id="login">
+        <h3 id="headingLogin" class="text-center pt-5">Connect Practice</h3>
+        <div class="container d-flex align-items-stretch">
+            <nav id="sidebar" class="img" style="background-image: url(images/bg_1.jpg);">
+                <div class="p-4">
+                    <h1><a href="index.html" class="logo">CP <span>Connect Practice</span></a></h1>
+                    <ul class="list-unstyled components mb-5">
+                        
+                        <li id="addDoctorOption" class="active">
+                            <a><span class="fa fa-user mr-3"></span> Add Doctor</a>
+                        </li>
+                        <li id="listAllDoctorsOption">
+                            <a><span class="fa fa-user mr-3"></span> List All Doctors</a>
+                        </li>
+                        <li id="listAllAppointmentsOption">
+                            <a><span class="fa fa-user mr-3"></span> List All Appointments</a>
+                        </li>
+                        <li id="btnLogout">
+                            <a><span class="fa fa-user mr-3"></span>Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- Page Content  -->
+           
+            <div id="addDoctorContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">Add Doctor</h2>
+                <form id="login-form" class="form" action="" method="post">
+                    <div class="form-group">
+                        <label for="Name" class="text-info">Doctor's Name:</label><br>
+                        <input type="text" name="username" id="nameOnly" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="Name" class="text-info">Phone Number:</label><br>
+                        <input type="text" name="phoneNumber" id="phoneNumber" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="username" class="text-info">Username:</label><br>
+                        <input type="text" name="username" id="username" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="text-info">Password:</label><br>
+                        <input type="password" name="psw" id="pwd" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input id="addDoctor" type="button" name="addDoctor" class="btn btn-info btn-md btn-hms" value="Add Doctor" />
+                    </div>
+                </form>
+            </div>
+
+            <div id="listAllDoctorsContent" class="p-4 p-md-5 pt-5">
+                <h2 class="mb-4">Doctors List</h2>
+                <div id="doctorsList">
+                </div>
+            </div>
+
+            <div id="listAllAppointmentsContent" class="p-4 p-md-5 pt-5">
+                <div id="appointmentContent" class="p-4 p-md-5 pt-5">
+                    <h2 class="mb-4">Appointments</h2>
+                    <div id="appointmentList">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
